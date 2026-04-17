@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+*.log
+.DS_Store
+node_modules/
+# Save .gitignore and commit it
+git add .gitignore
+git commit -m "Add .gitignore for Python project"
+# TEST: create a file that should be ignored
+echo "secret" > debug.log
+git status
+# debug.log should NOT appear in the output!
+    

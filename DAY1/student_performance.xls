@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="Student Performance">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Name</Data></Cell>
+    <Cell><Data ss:Type="String">Math</Data></Cell>
+    <Cell><Data ss:Type="String">Science</Data></Cell>
+    <Cell><Data ss:Type="String">English</Data></Cell>
+    <Cell><Data ss:Type="String">Average</Data></Cell>
+    <Cell><Data ss:Type="String">Grade</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Indhu</Data></Cell>
+    <Cell><Data ss:Type="Number">80.0</Data></Cell>
+    <Cell><Data ss:Type="Number">85.0</Data></Cell>
+    <Cell><Data ss:Type="Number">82.0</Data></Cell>
+    <Cell ss:Formula="=AVERAGE(RC[-3]:RC[-1])"><Data ss:Type="Number">82.33</Data></Cell>
+    <Cell ss:Formula="=IF(RC[-1]>=85,&quot;A&quot;,IF(RC[-1]>=70,&quot;B&quot;,IF(RC[-1]>=50,&quot;C&quot;,&quot;D&quot;)))"><Data ss:Type="String">B</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Varshini</Data></Cell>
+    <Cell><Data ss:Type="Number">96.0</Data></Cell>
+    <Cell><Data ss:Type="Number">95.0</Data></Cell>
+    <Cell><Data ss:Type="Number">94.0</Data></Cell>
+    <Cell ss:Formula="=AVERAGE(RC[-3]:RC[-1])"><Data ss:Type="Number">95.0</Data></Cell>
+    <Cell ss:Formula="=IF(RC[-1]>=85,&quot;A&quot;,IF(RC[-1]>=70,&quot;B&quot;,IF(RC[-1]>=50,&quot;C&quot;,&quot;D&quot;)))"><Data ss:Type="String">A</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Ananda</Data></Cell>
+    <Cell><Data ss:Type="Number">50.0</Data></Cell>
+    <Cell><Data ss:Type="Number">60.0</Data></Cell>
+    <Cell><Data ss:Type="Number">55.0</Data></Cell>
+    <Cell ss:Formula="=AVERAGE(RC[-3]:RC[-1])"><Data ss:Type="Number">55.0</Data></Cell>
+    <Cell ss:Formula="=IF(RC[-1]>=85,&quot;A&quot;,IF(RC[-1]>=70,&quot;B&quot;,IF(RC[-1]>=50,&quot;C&quot;,&quot;D&quot;)))"><Data ss:Type="String">C</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Shashikala</Data></Cell>
+    <Cell><Data ss:Type="Number">70.0</Data></Cell>
+    <Cell><Data ss:Type="Number">85.0</Data></Cell>
+    <Cell><Data ss:Type="Number">64.0</Data></Cell>
+    <Cell ss:Formula="=AVERAGE(RC[-3]:RC[-1])"><Data ss:Type="Number">73.0</Data></Cell>
+    <Cell ss:Formula="=IF(RC[-1]>=85,&quot;A&quot;,IF(RC[-1]>=70,&quot;B&quot;,IF(RC[-1]>=50,&quot;C&quot;,&quot;D&quot;)))"><Data ss:Type="String">B</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>
