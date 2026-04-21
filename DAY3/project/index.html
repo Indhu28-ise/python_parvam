@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Courier Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h2>Courier Tracking System</h2>
+
+<a href="/add">➕ Add Parcel</a>
+<a href="/export">📊 Export CSV</a>
+
+<form method="post" action="/search">
+    <input name="id" placeholder="Search Parcel ID">
+    <button type="submit">Search</button>
+</form>
+
+<table>
+<tr>
+    <th>ID</th>
+    <th>Sender</th>
+    <th>Receiver</th>
+    <th>Status</th>
+    <th>Days</th>
+    <th>Actions</th>
+</tr>
+
+{% for p in parcels %}
+<tr class="{% if p.delayed %}delayed{% endif %}">
+    <td>{{ p.id }}</td>
+    <td>{{ p.sender }}</td>
+    <td>{{ p.receiver }}</td>
+    <td>{{ p.status }}</td>
+    <td>{{ p.days }}</td>
+    <td>
+        <a href="/update/{{ p.id }}">Update</a> |
+        <a href="/delete/{{ p.id }}">Delete</a>
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>

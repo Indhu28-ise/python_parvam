@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CourierTrack</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="topbar">
+    <div class="logo"><span class="logo-dot"></span>COURIERTRACK</div>
+    <span class="live-tag">Live Dashboard</span>
+  </header>
+
+  <!-- STATS -->
+  {% set total = parcels|length %}
+  {% set in_transit = parcels|selectattr("status","equalto","In Transit")|list|length %}
+  {% set delivered = parcels|selectattr("status","equalto","Delivered")|list|length %}
+  {% set delayed = parcels|selectattr("is_delayed")|list|length %}
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Parcels</div><div class="stat-val blue">{{ total }}</div></div>
+    <div class="stat-card"><div class="stat-label">In Transit</div><div class="stat-val amber">{{ in_transit }}</div></div>
+    <div class="stat-card"><div class="stat-label">Delivered</div><div class="stat-val green">{{ delivered }}</div></div>
+    <div class="stat-card"><div class="stat-label">Delayed</div><div class="stat-val red">{{ delayed }}</div></div>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="form-card">
+    <div class="section-label">Register new parcel</div>
+    <form action="/add" method="POST" class="form-row">
+      <div class="field"><label>Parcel ID</label><input type="text" name="parcel_id" placeholder="e.g. PKT005" required/></div>
+      <div class="field"><label>Sender</label><input type="text" name="sender" placeholder="Sender name" required/></div>
+      <div class="field"><label>Receiver</label><input type="text" name="receiver" placeholder="Receiver name" required/></div>
+      <div class="field"><label>Destination</label><input type="text" name="destination" placeholder="City" required/></div>
+      <button type="submit" class="btn-add">+ Register</button>
+    </form>
+  </div>
+
+  <!-- PARCELS -->
+  <div class="section-label">Active parcels</div>
+
+  {% if parcels %}
+    {% for p in parcels %}
+    <div class="parcel-card {{ 'delayed' if p.is_delayed else '' }}">
+
+      <!-- TOP ROW -->
+      <div class="parcel-top">
+        <div class="parcel-left">
+          <span class="parcel-id">{{ p.id }}</span>
+          <span class="parcel-meta">{{ p.sender }} → {{ p.receiver }} &nbsp;·&nbsp; {{ p.destination }}</span>
+        </div>
+        <div class="parcel-right">
+          <span class="badge status-{{ p.status|replace(' ','-')|lower }}">{{ p.status }}</span>
+          {% if p.is_delayed %}<span class="badge badge-delayed">Delayed</span>{% endif %}
+          <span class="days {{ 'days-red' if p.is_delayed else '' }}">{{ p.days_in_transit }}d</span>
+        </div>
+      </div>
+
+      <!-- PROGRESS BAR -->
+      {% set steps = ["Picked Up", "In Transit", "Out for Delivery", "Delivered"] %}
+      {% set current_idx = steps.index(p.status) %}
+      <div class="progress-track">
+        {% for step in steps %}
+        {% set idx = loop.index0 %}
+        <div class="step">
+          {% if idx < steps|length - 1 %}
+          <div class="step-line {{ 'done' if idx < current_idx else '' }}"></div>
+          {% endif %}
+          <div class="step-dot {{ 'done' if idx < current_idx else 'active' if idx == current_idx else '' }}"></div>
+          <div class="step-lbl {{ 'active' if idx == current_idx else '' }}">{{ step }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="timeline-row">
+        {% for t in p.timeline %}
+          <span class="tl-item">{{ t.status }} · {{ t.time }}</span>
+          {% if not loop.last %}<span class="tl-arrow">→</span>{% endif %}
+        {% endfor %}
+      </div>
+
+      <!-- UPDATE + DELETE -->
+      <div class="parcel-actions">
+        <form action="/update_status/{{ p.id }}" method="POST" class="update-form">
+          <select name="status">
+            {% for s in statuses %}
+            <option value="{{ s }}" {{ 'selected' if p.status == s else '' }}>{{ s }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-update">Update status</button>
+        </form>
+        <form action="/delete/{{ p.id }}" method="POST"
+              onsubmit="return confirm('Delete {{ p.id }}?')">
+          <button type="submit" class="btn-delete">Delete</button>
+        </form>
+      </div>
+
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No parcels registered yet. Add one above.</div>
+  {% endif %}
+
+</div>
+</body>
+</html>

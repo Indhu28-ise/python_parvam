@@ -1,0 +1,132 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: #0b0e14;
+  color: #e2e4ec;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.shell { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+/* TOPBAR */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 0; border-bottom: 1px solid #1e2233; margin-bottom: 24px;
+}
+.logo {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  font-weight: 600; letter-spacing: 2px; color: #e2e4ec;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; }
+.live-tag { font-size: 11px; color: #555e7a; letter-spacing: 0.5px; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+.stat-card { background: #111520; border: 1px solid #1e2233; border-radius: 10px; padding: 16px 18px; }
+.stat-label { font-size: 11px; color: #555e7a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.stat-val { font-size: 26px; font-weight: 600; }
+.stat-val.blue   { color: #378ADD; }
+.stat-val.amber  { color: #EF9F27; }
+.stat-val.green  { color: #1D9E75; }
+.stat-val.red    { color: #E24B4A; }
+
+/* SECTION LABEL */
+.section-label { font-size: 11px; color: #555e7a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+
+/* FORM CARD */
+.form-card { background: #111520; border: 1px solid #1e2233; border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 11px; color: #555e7a; }
+input[type="text"] {
+  background: #0b0e14; border: 1px solid #1e2233; border-radius: 8px;
+  padding: 9px 12px; font-size: 13px; font-family: 'Space Grotesk', sans-serif;
+  color: #e2e4ec; width: 100%; transition: border-color 0.2s;
+}
+input[type="text"]:focus { outline: none; border-color: #1D9E75; }
+.btn-add {
+  background: #1D9E75; color: #fff; border: none; border-radius: 8px;
+  padding: 9px 20px; font-size: 13px; font-weight: 500;
+  font-family: 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.btn-add:hover { opacity: 0.85; }
+
+/* PARCEL CARD */
+.parcel-card {
+  background: #111520; border: 1px solid #1e2233; border-radius: 12px;
+  padding: 18px 20px; margin-bottom: 10px; transition: border-color 0.2s;
+}
+.parcel-card:hover { border-color: #2a3050; }
+.parcel-card.delayed { border-left: 2px solid #E24B4A; }
+
+.parcel-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.parcel-left { display: flex; align-items: center; gap: 10px; }
+.parcel-id { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #e2e4ec; }
+.parcel-meta { font-size: 12px; color: #555e7a; }
+.parcel-right { display: flex; align-items: center; gap: 8px; }
+
+/* BADGES */
+.badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+.status-picked-up        { background: #0C447C22; color: #378ADD; border: 1px solid #378ADD44; }
+.status-in-transit       { background: #27500A22; color: #639922; border: 1px solid #63992244; }
+.status-out-for-delivery { background: #63380622; color: #EF9F27; border: 1px solid #EF9F2744; }
+.status-delivered        { background: #0F6E5622; color: #1D9E75; border: 1px solid #1D9E7544; }
+.badge-delayed           { background: #A32D2D22; color: #E24B4A; border: 1px solid #E24B4A44; font-weight: 600; }
+
+.days { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #555e7a; }
+.days-red { color: #E24B4A; font-weight: 600; }
+
+/* PROGRESS TRACK */
+.progress-track { display: flex; align-items: flex-start; margin-bottom: 14px; }
+.step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+.step-line {
+  position: absolute; top: 5px; left: 50%; width: 100%;
+  height: 2px; background: #1e2233; z-index: 0;
+}
+.step-line.done { background: #1D9E75; }
+.step-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid #2a3050; background: #0b0e14; z-index: 1;
+}
+.step-dot.done   { background: #1D9E75; border-color: #1D9E75; }
+.step-dot.active { background: #378ADD; border-color: #378ADD; box-shadow: 0 0 0 4px #378ADD22; }
+.step-lbl { font-size: 10px; color: #555e7a; margin-top: 6px; text-align: center; }
+.step-lbl.active { color: #378ADD; font-weight: 500; }
+
+/* TIMELINE */
+.timeline-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; }
+.tl-item { font-size: 11px; color: #7a8299; background: #0b0e14; border: 1px solid #1e2233; padding: 3px 10px; border-radius: 20px; }
+.tl-arrow { font-size: 11px; color: #2a3050; }
+
+/* ACTIONS */
+.parcel-actions { display: flex; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid #1a1f30; }
+.update-form { display: flex; align-items: center; gap: 8px; }
+select {
+  background: #0b0e14; border: 1px solid #1e2233; border-radius: 8px;
+  padding: 7px 11px; font-size: 12px; color: #e2e4ec;
+  font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+}
+.btn-update {
+  background: transparent; color: #1D9E75; border: 1px solid #1D9E7544;
+  border-radius: 8px; padding: 7px 16px; font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-update:hover { background: #1D9E7511; }
+.btn-delete {
+  background: transparent; color: #E24B4A; border: 1px solid #E24B4A33;
+  border-radius: 8px; padding: 7px 14px; font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: background 0.2s;
+}
+.btn-delete:hover { background: #E24B4A11; }
+
+.empty-state { text-align: center; color: #555e7a; font-size: 14px; padding: 50px 0; }
+
+@media (max-width: 700px) {
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+  .form-row { grid-template-columns: 1fr 1fr; }
+}
