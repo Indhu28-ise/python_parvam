@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – SubTracker{% endblock %}
+{% block page_title %}My Subscriptions{% endblock %}
+
+{% block content %}
+
+<!-- ── Summary Cards ─────────────────────────────────────────────────── -->
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">💰</div>
+    <div class="stat-body">
+      <span class="stat-value">₹{{ "%.0f"|format(total_monthly) }}</span>
+      <span class="stat-label">Monthly Spend</span>
+    </div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">📅</div>
+    <div class="stat-body">
+      <span class="stat-value">₹{{ "%.0f"|format(total_annual) }}</span>
+      <span class="stat-label">Annual Spend</span>
+    </div>
+  </div>
+  <div class="stat-card stat-orange">
+    <div class="stat-icon">⏰</div>
+    <div class="stat-body">
+      <span class="stat-value">{{ upcoming_count }}</span>
+      <span class="stat-label">Renewing Soon</span>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-body">
+      <span class="stat-value">{{ active_count }}</span>
+      <span class="stat-label">Active</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Cost Toggle ───────────────────────────────────────────────────── -->
+<div class="toggle-row">
+  <span class="toggle-label">Show costs as:</span>
+  <div class="cost-toggle" id="costToggle">
+    <button class="toggle-btn active" id="btn-monthly" onclick="setCostView('monthly')">Monthly</button>
+    <button class="toggle-btn"        id="btn-annual"  onclick="setCostView('annual')">Annual</button>
+  </div>
+</div>
+
+<!-- ── Filters & Search ──────────────────────────────────────────────── -->
+<form method="GET" action="{{ url_for('main.dashboard') }}" class="filter-bar" id="filterForm">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" name="search" id="searchInput" class="search-input"
+           placeholder="Search subscriptions…" value="{{ search }}"
+           oninput="debounceSubmit()" />
+    {% if search %}
+      <a href="{{ url_for('main.dashboard') }}" class="search-clear">✕</a>
+    {% endif %}
+  </div>
+
+  <div class="category-tabs" id="categoryTabs">
+    <a href="{{ url_for('main.dashboard', search=search) }}"
+       class="cat-tab {% if selected_category == 'All' %}active{% endif %}">All</a>
+    {% for cat in categories %}
+      <a href="{{ url_for('main.dashboard', category=cat, search=search) }}"
+         class="cat-tab {% if selected_category == cat %}active{% endif %}">{{ cat }}</a>
+    {% endfor %}
+  </div>
+</form>
+
+<!-- ── Subscription Cards Grid ──────────────────────────────────────── -->
+{% if subscriptions %}
+<div class="cards-grid" id="cardsGrid">
+  {% for sub in subscriptions %}
+  <div class="sub-card status-{{ sub.alert_status | lower }}" data-id="{{ sub.id }}"
+       data-monthly="{{ sub.monthly_cost }}" data-annual="{{ sub.annual_cost }}">
+
+    <!-- Card Header -->
+    <div class="card-header">
+      <div class="service-info">
+        <span class="service-icon">{{ sub.icon }}</span>
+        <div>
+          <h3 class="service-name">{{ sub.service }}</h3>
+          <span class="category-badge">{{ sub.category }}</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <a href="{{ url_for('main.edit_subscription', sub_id=sub.id) }}"
+           class="action-btn edit-btn" title="Edit">✏️</a>
+        <form method="POST" action="{{ url_for('main.delete_subscription', sub_id=sub.id) }}"
+              class="inline-form" onsubmit="return confirm('Remove {{ sub.service }}?')">
+          <button type="submit" class="action-btn delete-btn" title="Delete">🗑️</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Cost Display -->
+    <div class="card-cost">
+      <span class="cost-amount cost-monthly">₹{{ "%.0f"|format(sub.monthly_cost) }}<small>/mo</small></span>
+      <span class="cost-amount cost-annual" style="display:none">₹{{ "%.0f"|format(sub.annual_cost) }}<small>/yr</small></span>
+      <span class="period-pill">{{ sub.period }}</span>
+    </div>
+
+    <!-- Countdown -->
+    <div class="card-countdown">
+      {% if sub.days_left < 0 %}
+        <span class="countdown expired-text">Expired {{ sub.days_left | abs }} day{% if sub.days_left | abs != 1 %}s{% endif %} ago</span>
+      {% elif sub.days_left == 0 %}
+        <span class="countdown urgent-text">⚡ Renews TODAY</span>
+      {% elif sub.days_left == 1 %}
+        <span class="countdown urgent-text">⚡ Renews Tomorrow</span>
+      {% else %}
+        <span class="countdown">🗓️ Renews in <strong>{{ sub.days_left }}</strong> days</span>
+      {% endif %}
+
+      <span class="renewal-date">{{ sub.renewal_date.strftime('%d %b %Y') }}</span>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="card-footer">
+      {% if sub.alert_status == 'Expired' %}
+        <span class="status-badge badge-red">🔴 RENEW NOW</span>
+      {% elif sub.alert_status == 'Upcoming' %}
+        <span class="status-badge badge-orange">🟠 UPCOMING RENEWAL</span>
+      {% else %}
+        <span class="status-badge badge-green">🟢 ACTIVE</span>
+      {% endif %}
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+  <div class="empty-icon">📭</div>
+  <h3 class="empty-title">No subscriptions found</h3>
+  <p class="empty-text">
+    {% if search or selected_category != 'All' %}
+      No results for your current filter. <a href="{{ url_for('main.dashboard') }}">Clear filters</a>
+    {% else %}
+      Start tracking your subscriptions today!
+    {% endif %}
+  </p>
+  <a href="{{ url_for('main.add_subscription') }}" class="btn btn-primary">+ Add First Subscription</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Debounce search form submit
+let debounceTimer;
+function debounceSubmit() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => document.getElementById('filterForm').submit(), 600);
+}
+
+// Cost view toggle (Monthly / Annual)
+function setCostView(mode) {
+  document.querySelectorAll('.cost-monthly').forEach(el => el.style.display = mode === 'monthly' ? '' : 'none');
+  document.querySelectorAll('.cost-annual').forEach(el  => el.style.display = mode === 'annual'  ? '' : 'none');
+  document.getElementById('btn-monthly').classList.toggle('active', mode === 'monthly');
+  document.getElementById('btn-annual').classList.toggle('active',  mode === 'annual');
+  localStorage.setItem('costView', mode);
+}
+
+// Restore saved cost view on load
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('costView') || 'monthly';
+  setCostView(saved);
+});
+</script>
+{% endblock %}

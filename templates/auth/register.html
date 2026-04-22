@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Register – SubTracker{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <span class="auth-logo-icon">💳</span>
+      <h2 class="auth-logo-text">SubTracker</h2>
+      <p class="auth-subtitle">Create your free account</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}" style="margin-bottom:16px">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form" novalidate>
+
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <input type="text" id="username" name="username" class="form-input"
+                 placeholder="Choose a username" required autocomplete="username" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" name="email" class="form-input"
+                 placeholder="you@example.com" required autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" name="password" class="form-input"
+                 placeholder="Min. 6 characters" required autocomplete="new-password" />
+          <button type="button" class="toggle-pw" onclick="togglePassword('password')" aria-label="Toggle">👁️</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm" class="form-label">Confirm Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔑</span>
+          <input type="password" id="confirm" name="confirm" class="form-input"
+                 placeholder="Repeat your password" required autocomplete="new-password" />
+          <button type="button" class="toggle-pw" onclick="togglePassword('confirm')" aria-label="Toggle">👁️</button>
+        </div>
+        <span class="field-hint" id="pw-match-hint"></span>
+      </div>
+
+      <!-- Password strength bar -->
+      <div class="pw-strength-wrap">
+        <div class="pw-strength-bar" id="pw-strength-bar"></div>
+      </div>
+      <span class="field-hint" id="pw-strength-label"></span>
+
+      <button type="submit" class="btn btn-primary btn-full" id="register-btn">
+        Create Account →
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}" class="auth-link">Sign in</a>
+    </p>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-panel-content">
+      <div class="panel-emoji">📊</div>
+      <h3>Your spending, visualised</h3>
+      <p>Get powerful analytics to understand where your money goes every month.</p>
+      <ul class="panel-features">
+        <li>📦 Unlimited subscriptions</li>
+        <li>🏷️ Category filters & search</li>
+        <li>📈 Interactive charts</li>
+        <li>🔄 Auto-renewal tracking</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePassword(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+// Real-time password strength
+const pwInput   = document.getElementById('password');
+const bar       = document.getElementById('pw-strength-bar');
+const label     = document.getElementById('pw-strength-label');
+const hint      = document.getElementById('pw-match-hint');
+const confirm   = document.getElementById('confirm');
+
+pwInput.addEventListener('input', () => {
+  const v = pwInput.value;
+  let score = 0;
+  if (v.length >= 6)  score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+
+  const levels = ['', 'Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
+  const colors = ['', '#ff4444', '#ff8800', '#ffcc00', '#44cc44', '#00cc88'];
+  bar.style.width  = (score / 5 * 100) + '%';
+  bar.style.background = colors[score] || '#333';
+  label.textContent = levels[score] || '';
+  label.style.color = colors[score] || '';
+});
+
+confirm.addEventListener('input', () => {
+  if (confirm.value === '') { hint.textContent = ''; return; }
+  if (confirm.value === pwInput.value) {
+    hint.textContent = '✅ Passwords match';
+    hint.style.color = '#44cc44';
+  } else {
+    hint.textContent = '❌ Passwords do not match';
+    hint.style.color = '#ff4444';
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Add Subscription – SubTracker{% endblock %}
+{% block page_title %}Add Subscription{% endblock %}
+
+{% block content %}
+<div class="form-page-wrapper">
+  <div class="form-card">
+    <div class="form-card-header">
+      <span class="form-card-icon">➕</span>
+      <div>
+        <h2 class="form-card-title">New Subscription</h2>
+        <p class="form-card-subtitle">Track a new app or service</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.add_subscription') }}" class="sub-form" novalidate>
+
+      <!-- Service Name -->
+      <div class="form-group">
+        <label for="service" class="form-label">Service Name <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <span class="input-icon" id="serviceIconPreview">📱</span>
+          <input type="text" id="service" name="service" class="form-input"
+                 placeholder="e.g. Netflix, Spotify, Adobe…" required
+                 oninput="updateIcon(this.value)" />
+        </div>
+        <!-- Quick Pick Chips -->
+        <div class="quick-picks">
+          {% for svc in ['Netflix','Spotify','YouTube','Amazon Prime','Disney+','Adobe','GitHub','Notion','Slack','Zoom'] %}
+          <button type="button" class="quick-chip"
+                  onclick="document.getElementById('service').value='{{ svc }}'; updateIcon('{{ svc }}')">
+            {{ svc }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Cost & Period -->
+      <div class="form-row-two">
+        <div class="form-group">
+          <label for="cost" class="form-label">Cost (₹) <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon">₹</span>
+            <input type="number" id="cost" name="cost" class="form-input"
+                   placeholder="0.00" min="0" step="0.01" required
+                   oninput="updateConversion()" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="period" class="form-label">Billing Period <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔄</span>
+            <select id="period" name="period" class="form-input form-select"
+                    onchange="updateConversion()">
+              <option value="Monthly">Monthly</option>
+              <option value="Annual">Annual</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost Conversion Preview -->
+      <div class="conversion-preview" id="conversionPreview" style="display:none">
+        <span class="conv-label">Equivalent:</span>
+        <span class="conv-value" id="convValue">—</span>
+      </div>
+
+      <!-- Renewal Date -->
+      <div class="form-group">
+        <label for="renewal_date" class="form-label">Next Renewal Date <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <span class="input-icon">📅</span>
+          <input type="date" id="renewal_date" name="renewal_date" class="form-input" required />
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label for="category" class="form-label">Category</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🏷️</span>
+          <select id="category" name="category" class="form-input form-select">
+            {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="form-actions">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-ghost">← Cancel</a>
+        <button type="submit" class="btn btn-primary">Add Subscription ✅</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ICONS = {
+  netflix:'🎬', spotify:'🎵', youtube:'▶️', amazon:'📦', disney:'🏰',
+  apple:'🍎', hulu:'📺', hbo:'🎭', notion:'📝', slack:'💬',
+  zoom:'📹', github:'🐙', dropbox:'📁', adobe:'🎨', microsoft:'🪟',
+  google:'🔍', linkedin:'💼', twitter:'🐦', discord:'🎮', figma:'✏️',
+};
+function updateIcon(name) {
+  const key = name.toLowerCase();
+  let icon = '📱';
+  for (const [k, v] of Object.entries(ICONS)) {
+    if (key.includes(k)) { icon = v; break; }
+  }
+  document.getElementById('serviceIconPreview').textContent = icon;
+}
+
+function updateConversion() {
+  const cost   = parseFloat(document.getElementById('cost').value);
+  const period = document.getElementById('period').value;
+  const box    = document.getElementById('conversionPreview');
+  const val    = document.getElementById('convValue');
+  if (!cost || isNaN(cost)) { box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  if (period === 'Monthly') {
+    val.textContent = `₹${(cost * 12).toFixed(0)} / year`;
+  } else {
+    val.textContent = `₹${(cost / 12).toFixed(0)} / month`;
+  }
+}
+
+// Default renewal date to today + 1 month
+(function() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  document.getElementById('renewal_date').value = d.toISOString().split('T')[0];
+})();
+</script>
+{% endblock %}

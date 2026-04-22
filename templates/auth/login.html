@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Login – SubTracker{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <span class="auth-logo-icon">💳</span>
+      <h2 class="auth-logo-text">SubTracker</h2>
+      <p class="auth-subtitle">Sign in to manage your subscriptions</p>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}" style="margin-bottom:16px">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" name="email" class="form-input"
+                 placeholder="you@example.com" required autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" name="password" class="form-input"
+                 placeholder="Enter your password" required autocomplete="current-password" />
+          <button type="button" class="toggle-pw" onclick="togglePassword('password')" aria-label="Toggle password">👁️</button>
+        </div>
+      </div>
+
+      <div class="form-row-inline">
+        <label class="checkbox-label">
+          <input type="checkbox" name="remember" id="remember" />
+          <span class="checkbox-custom"></span>
+          Remember me
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+        Sign In →
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Don't have an account?
+      <a href="{{ url_for('auth.register') }}" class="auth-link">Create one free</a>
+    </p>
+  </div>
+
+  <!-- Right panel / decoration -->
+  <div class="auth-panel">
+    <div class="auth-panel-content">
+      <div class="panel-emoji">🔔</div>
+      <h3>Never miss a renewal</h3>
+      <p>Track every subscription, get smart reminders, and take control of your spending.</p>
+      <ul class="panel-features">
+        <li>✅ Auto-countdown to renewal</li>
+        <li>✅ Email alerts 7 days before</li>
+        <li>✅ Spending analytics & charts</li>
+        <li>✅ Monthly ↔ Annual conversion</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePassword(id) {
+  const input = document.getElementById(id);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

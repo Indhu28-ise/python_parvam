@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — SubTrack</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-logo">Sub<span>Track</span></div>
+  <div class="nav-right">
+    <span class="nav-user">Hello, <strong>{{ username }}</strong></span>
+    <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Your Subscriptions</h1>
+    <p>Track, manage, and never miss a renewal again.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Subscriptions</div>
+      <div class="stat-value accent">{{ subscriptions | length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Monthly Spend</div>
+      <div class="stat-value green">₹{{ "%.0f" % total_monthly }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Upcoming Renewals</div>
+      <div class="stat-value orange">{{ upcoming }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Yearly Spend</div>
+      <div class="stat-value accent">₹{{ "%.0f" % total_annual }}</div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="analytics-section">
+    <div class="analytics-card">
+      <div class="section-title">📊 Monthly Spend by Service</div>
+      <div class="chart-wrap">
+        <canvas id="spendChart"></canvas>
+      </div>
+    </div>
+    <div class="analytics-card">
+      <div class="section-title">🏷️ Spend by Category</div>
+      <ul class="cat-list">
+        {% for cat, total in cat_totals.items() %}
+        <li>
+          <span>{{ cat }}</span>
+          <span class="cat-badge">₹{{ "%.0f" % total }}/mo</span>
+        </li>
+        {% else %}
+        <li style="color:var(--muted)">No data yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Add Subscription -->
+  <div class="add-section">
+    <div class="section-title">+ Add New Subscription</div>
+    <form action="{{ url_for('add_subscription') }}" method="POST" class="add-form">
+      <div class="form-group" style="margin:0">
+        <label>Service Name</label>
+        <input type="text" name="service" placeholder="Netflix, Spotify..." required>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Cost (₹)</label>
+        <input type="number" name="cost" step="0.01" min="0" placeholder="649" required>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Period</label>
+        <select name="period">
+          <option value="Monthly">Monthly</option>
+          <option value="Annual">Annual</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Category</label>
+        <select name="category">
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Renewal Date</label>
+        <input type="date" name="renewal_date" required>
+      </div>
+      <button type="submit" class="btn-primary" style="white-space:nowrap;margin-top:22px">Add</button>
+    </form>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards-section">
+    <div class="section-header">
+      <div class="section-title" style="margin:0">Active Subscriptions</div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterCards('all', this)">All</button>
+        <button class="filter-tab" onclick="filterCards('upcoming', this)">Upcoming</button>
+        <button class="filter-tab" onclick="filterCards('expired', this)">Expired</button>
+        <button class="filter-tab" onclick="filterCards('active', this)">Active</button>
+      </div>
+    </div>
+
+    <!-- Category chips -->
+    <div class="cat-filter" id="catFilter">
+      <button class="cat-chip active" onclick="filterByCategory('all', this)">All Categories</button>
+      {% for cat in categories %}
+      <button class="cat-chip" onclick="filterByCategory('{{ cat }}', this)">{{ cat }}</button>
+      {% endfor %}
+    </div>
+
+    {% if subscriptions %}
+    <div class="cards-grid" id="cardsGrid">
+      {% for sub in subscriptions %}
+      <div class="sub-card {{ 'upcoming' if sub.alert == 'Upcoming' else 'expired' if sub.alert == 'Expired' else '' }}"
+           data-status="{{ sub.alert | lower }}"
+           data-category="{{ sub.get('category', 'Other') }}"
+           style="animation-delay: {{ loop.index0 * 0.07 }}s">
+
+        {% if sub.alert == 'Upcoming' %}
+          <span class="card-badge badge-upcoming">⚡ Upcoming Renewal</span>
+        {% elif sub.alert == 'Expired' %}
+          <span class="card-badge badge-expired">🔴 Renew Now</span>
+        {% else %}
+          <span class="card-badge badge-active">✓ Active</span>
+        {% endif %}
+
+        <div class="card-icon">{{ sub.service[0] | upper }}</div>
+        <div class="card-service">{{ sub.service }}</div>
+        <div class="card-period">{{ sub.period }} · {{ sub.get('category', 'Other') }}</div>
+
+        <!-- Cost with toggle -->
+        <div class="card-cost" id="cost-{{ sub.id }}">
+          ₹{{ "%.0f" % sub.monthly_cost }}<span>/mo</span>
+        </div>
+        <div class="cost-toggle">
+          <button class="active" onclick="showCost({{ sub.id }}, 'monthly', {{ sub.monthly_cost }}, this)">Monthly</button>
+          <button onclick="showCost({{ sub.id }}, 'yearly', {{ sub.yearly_cost }}, this)">Yearly</button>
+        </div>
+
+        <div class="card-countdown">
+          <span>Renewal: {{ sub.renewal_date }}</span>
+          <span class="countdown-days {{ 'expired' if sub.days_left < 0 else 'urgent' if sub.days_left <= 7 else 'safe' }}">
+            {% if sub.days_left < 0 %}
+              Expired {{ sub.days_left | abs }} days ago
+            {% elif sub.days_left == 0 %}
+              Renews Today!
+            {% else %}
+              Renews in {{ sub.days_left }} days
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="card-footer">
+          <!-- Auto-renew button -->
+          <form action="{{ url_for('renew_subscription', sub_id=sub.id) }}" method="POST">
+            <button type="submit" class="btn-renew"
+              title="Advance renewal date by 1 {{ sub.period.lower() }}">
+              🔄 Mark Renewed
+            </button>
+          </form>
+          <!-- Delete button -->
+          <form action="{{ url_for('delete_subscription', sub_id=sub.id) }}" method="POST"
+                onsubmit="return confirm('Delete {{ sub.service }}?')">
+            <button type="submit" class="btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">📭</div>
+      <h3>No subscriptions yet</h3>
+      <p>Add your first subscription using the form above.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<!-- Chart.js setup -->
+<script>
+  const ctx = document.getElementById('spendChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+          label: '₹/month',
+          data: {{ chart_data | tojson }},
+          backgroundColor: 'rgba(108,99,255,0.7)',
+          borderColor: 'rgba(108,99,255,1)',
+          borderWidth: 1,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#7c82a0' }, grid: { color: '#252a3a' } },
+          y: { ticks: { color: '#7c82a0' }, grid: { color: '#252a3a' } }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

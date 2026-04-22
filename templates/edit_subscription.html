@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ sub.service }} – SubTracker{% endblock %}
+{% block page_title %}Edit Subscription{% endblock %}
+
+{% block content %}
+<div class="form-page-wrapper">
+  <div class="form-card">
+    <div class="form-card-header">
+      <span class="form-card-icon">✏️</span>
+      <div>
+        <h2 class="form-card-title">Edit Subscription</h2>
+        <p class="form-card-subtitle">Update details for {{ sub.service }}</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.edit_subscription', sub_id=sub.id) }}"
+          class="sub-form" novalidate>
+
+      <!-- Service Name -->
+      <div class="form-group">
+        <label for="service" class="form-label">Service Name <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <span class="input-icon" id="serviceIconPreview">📱</span>
+          <input type="text" id="service" name="service" class="form-input"
+                 value="{{ sub.service }}" required oninput="updateIcon(this.value)" />
+        </div>
+      </div>
+
+      <!-- Cost & Period -->
+      <div class="form-row-two">
+        <div class="form-group">
+          <label for="cost" class="form-label">Cost (₹) <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon">₹</span>
+            <input type="number" id="cost" name="cost" class="form-input"
+                   value="{{ sub.cost }}" min="0" step="0.01" required
+                   oninput="updateConversion()" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="period" class="form-label">Billing Period <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔄</span>
+            <select id="period" name="period" class="form-input form-select"
+                    onchange="updateConversion()">
+              <option value="Monthly" {% if sub.period == 'Monthly' %}selected{% endif %}>Monthly</option>
+              <option value="Annual"  {% if sub.period == 'Annual'  %}selected{% endif %}>Annual</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversion Preview -->
+      <div class="conversion-preview" id="conversionPreview">
+        <span class="conv-label">Equivalent:</span>
+        <span class="conv-value" id="convValue">—</span>
+      </div>
+
+      <!-- Renewal Date -->
+      <div class="form-group">
+        <label for="renewal_date" class="form-label">Next Renewal Date <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <span class="input-icon">📅</span>
+          <input type="date" id="renewal_date" name="renewal_date" class="form-input"
+                 value="{{ sub.renewal_date.isoformat() }}" required />
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label for="category" class="form-label">Category</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🏷️</span>
+          <select id="category" name="category" class="form-input form-select">
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if sub.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Info box: current status -->
+      <div class="info-box
+        {% if sub.alert_status == 'Expired' %}info-red
+        {% elif sub.alert_status == 'Upcoming' %}info-orange
+        {% else %}info-green{% endif %}">
+        {% if sub.alert_status == 'Expired' %}
+          🔴 This subscription expired {{ sub.days_left | abs }} days ago.
+        {% elif sub.alert_status == 'Upcoming' %}
+          🟠 Renews in {{ sub.days_left }} day{% if sub.days_left != 1 %}s{% endif %} on {{ sub.renewal_date.strftime('%d %b %Y') }}.
+        {% else %}
+          🟢 Active – renews in {{ sub.days_left }} days on {{ sub.renewal_date.strftime('%d %b %Y') }}.
+        {% endif %}
+      </div>
+
+      <!-- Buttons -->
+      <div class="form-actions">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-ghost">← Cancel</a>
+        <button type="submit" class="btn btn-primary">Save Changes ✅</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ICONS = {
+  netflix:'🎬', spotify:'🎵', youtube:'▶️', amazon:'📦', disney:'🏰',
+  apple:'🍎', hulu:'📺', hbo:'🎭', notion:'📝', slack:'💬',
+  zoom:'📹', github:'🐙', dropbox:'📁', adobe:'🎨', microsoft:'🪟',
+  google:'🔍', linkedin:'💼', twitter:'🐦', discord:'🎮', figma:'✏️',
+};
+function updateIcon(name) {
+  const key = name.toLowerCase();
+  let icon = '📱';
+  for (const [k, v] of Object.entries(ICONS)) { if (key.includes(k)) { icon = v; break; } }
+  document.getElementById('serviceIconPreview').textContent = icon;
+}
+function updateConversion() {
+  const cost = parseFloat(document.getElementById('cost').value);
+  const period = document.getElementById('period').value;
+  const val = document.getElementById('convValue');
+  if (!cost || isNaN(cost)) { val.textContent = '—'; return; }
+  val.textContent = period === 'Monthly'
+    ? `₹${(cost * 12).toFixed(0)} / year`
+    : `₹${(cost / 12).toFixed(0)} / month`;
+}
+// Init on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updateIcon(document.getElementById('service').value);
+  updateConversion();
+});
+</script>
+{% endblock %}

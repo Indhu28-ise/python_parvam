@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Analytics – SubTracker{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+
+<!-- ── KPI Cards ──────────────────────────────────────────────────────── -->
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">💰</div>
+    <div class="stat-body">
+      <span class="stat-value">₹{{ "%.0f"|format(total_monthly) }}</span>
+      <span class="stat-label">Monthly Total</span>
+    </div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">📅</div>
+    <div class="stat-body">
+      <span class="stat-value">₹{{ "%.0f"|format(total_annual) }}</span>
+      <span class="stat-label">Annual Total</span>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">📦</div>
+    <div class="stat-body">
+      <span class="stat-value">{{ sub_count }}</span>
+      <span class="stat-label">Subscriptions</span>
+    </div>
+  </div>
+  <div class="stat-card stat-orange">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-body">
+      <span class="stat-value">{{ upcoming }}</span>
+      <span class="stat-label">Upcoming</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charts Row 1 ───────────────────────────────────────────────────── -->
+<div class="charts-grid">
+
+  <!-- Pie: Spending by Category -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-title">Spending by Category</h3>
+      <span class="chart-sub">Monthly breakdown</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Doughnut: Monthly vs Annual billing -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-title">Billing Type Mix</h3>
+      <span class="chart-sub">Monthly vs Annual</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="periodChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Charts Row 2 ───────────────────────────────────────────────────── -->
+<div class="charts-grid charts-grid-single">
+
+  <!-- Bar: Top subscriptions by cost -->
+  <div class="chart-card chart-card-wide">
+    <div class="chart-card-header">
+      <h3 class="chart-title">Top Subscriptions by Monthly Cost</h3>
+      <span class="chart-sub">Highest spend first</span>
+    </div>
+    <div class="chart-wrap chart-wrap-bar">
+      <canvas id="topChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Subscription Table ─────────────────────────────────────────────── -->
+<div class="table-card">
+  <div class="chart-card-header">
+    <h3 class="chart-title">All Subscriptions</h3>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-ghost btn-sm">← Back to Dashboard</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table" id="subsTable">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Category</th>
+          <th>Period</th>
+          <th>Monthly Cost</th>
+          <th>Annual Cost</th>
+          <th>Renewal Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="7" class="table-loading">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// ── Palette ────────────────────────────────────────────────────────────
+const PALETTE = [
+  '#7c3aed','#a78bfa','#06b6d4','#22d3ee','#f59e0b',
+  '#f97316','#ec4899','#10b981','#3b82f6','#8b5cf6'
+];
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: {
+    legend: { labels: { color: '#c4c4e0', font: { family: 'Inter', size: 12 } } },
+    tooltip: {
+      backgroundColor: '#1e1e3a',
+      titleColor: '#a78bfa',
+      bodyColor: '#e2e2f0',
+      borderColor: '#2d2d54',
+      borderWidth: 1,
+      callbacks: { label: ctx => ` ₹${ctx.parsed.toFixed ? ctx.parsed.toFixed(0) : ctx.parsed.y?.toFixed(0)}` }
+    }
+  }
+};
+
+// ── Fetch & Render: Category Pie ────────────────────────────────────────
+fetch('/api/analytics/category')
+  .then(r => r.json())
+  .then(data => {
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'pie',
+      data: {
+        labels: data.labels,
+        datasets: [{ data: data.values, backgroundColor: PALETTE, borderColor: '#12121e', borderWidth: 2 }]
+      },
+      options: { ...CHART_DEFAULTS }
+    });
+  });
+
+// ── Fetch & Render: Period Doughnut ────────────────────────────────────
+fetch('/api/analytics/period')
+  .then(r => r.json())
+  .then(data => {
+    new Chart(document.getElementById('periodChart'), {
+      type: 'doughnut',
+      data: {
+        labels: data.labels,
+        datasets: [{ data: data.values, backgroundColor: ['#7c3aed','#06b6d4'], borderColor: '#12121e', borderWidth: 2 }]
+      },
+      options: { ...CHART_DEFAULTS, cutout: '60%' }
+    });
+  });
+
+// ── Fetch & Render: Top Subscriptions Bar ──────────────────────────────
+fetch('/api/analytics/top')
+  .then(r => r.json())
+  .then(data => {
+    new Chart(document.getElementById('topChart'), {
+      type: 'bar',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: 'Monthly Cost (₹)',
+          data: data.values,
+          backgroundColor: PALETTE.slice(0, data.values.length),
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        ...CHART_DEFAULTS,
+        scales: {
+          x: { ticks: { color: '#9090b0' }, grid: { color: '#2d2d44' } },
+          y: {
+            ticks: { color: '#9090b0', callback: v => '₹' + v },
+            grid: { color: '#2d2d44' }
+          }
+        }
+      }
+    });
+  });
+
+// ── Fetch & Render: Table ───────────────────────────────────────────────
+const STATUS_BADGE = {
+  Active:   '<span class="status-badge badge-green">🟢 Active</span>',
+  Upcoming: '<span class="status-badge badge-orange">🟠 Upcoming</span>',
+  Expired:  '<span class="status-badge badge-red">🔴 Expired</span>',
+};
+
+fetch('/api/analytics/summary')
+  .then(r => r.json())
+  .then(subs => {
+    const tbody = document.getElementById('tableBody');
+    if (!subs.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="table-loading">No subscriptions yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = subs.map(s => `
+      <tr>
+        <td><strong>${s.service}</strong></td>
+        <td>${s.category}</td>
+        <td>${s.period}</td>
+        <td>₹${s.monthly_cost.toFixed(0)}</td>
+        <td>₹${s.annual_cost.toFixed(0)}</td>
+        <td>${s.renewal_date}</td>
+        <td>${STATUS_BADGE[s.alert] || s.alert}</td>
+      </tr>
+    `).join('');
+  });
+</script>
+{% endblock %}

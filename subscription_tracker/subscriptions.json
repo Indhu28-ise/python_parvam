@@ -1,0 +1,25 @@
+{
+  "subscriptions": [
+    {
+      "id": 1,
+      "service": "netflix",
+      "cost": 300.0,
+      "period": "Monthly",
+      "renewal_date": "2026-05-09"
+    },
+    {
+      "id": 2,
+      "service": "spothify",
+      "cost": 500.0,
+      "period": "Annual",
+      "renewal_date": "2026-04-25"
+    },
+    {
+      "id": 3,
+      "service": "amazon",
+      "cost": 200.0,
+      "period": "Monthly",
+      "renewal_date": "2026-04-23"
+    }
+  ]
+}
